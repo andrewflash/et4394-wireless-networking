@@ -1,6 +1,7 @@
 # Possible Scenario
 Here is a list of possible scenario for project 1 - Wi-Fi in NS3 
 (performance vs number of stations):
+
 1. Equal bandwidth and distance (circular ring)
   * Create x nodes as client with the same distance to AP; This can be done by using circular topology
   * Create 1 nodes as server placed directly below AP
