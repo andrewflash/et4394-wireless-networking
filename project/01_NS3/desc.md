@@ -12,5 +12,5 @@ experiment with the all parameters that NS3 WiFi helper allows
   2. simulations
   3. plotting
 * Proper result presentation: error bars, many runs to obtain results 
-Use [GitHub.com](www.github.com) to store your code 
+Use [GitHub.com](http://www.github.com) to store your code 
 * Use LaTeX only
