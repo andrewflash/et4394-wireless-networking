@@ -29,11 +29,11 @@ for i=1:length(rawData)
 end
 
 figure(1);
-%plot(rawData);
-hold on;
-plot (mvAvgArr);
+plot(rawData);
+%hold on;
+%plot (mvAvgArr);
 
-% Detecting delimiter
+% Calculate 1 tari and detect rising edges
 % 1) Creating zero one graph
 stdWindow = 10;
 stdDevArr = [];
@@ -89,4 +89,37 @@ end
 hold on;
 plot (edgeArr);
 
-% Edge Detection
+tariIdx=1;
+tariStart=0;
+while (edgeArr(tariIdx) ~= 0.7) % find data-0 
+    tariIdx = tariIdx+1;
+end
+tariStart = tariIdx;
+tariIdx = tariIdx+1;
+while (edgeArr(tariIdx) ~= 0.7)
+    tariIdx = tariIdx+1;
+end
+tari = tariIdx - tariStart;
+
+% Create bitstream; 2 denotes calibration
+bitstream = [];
+for i=1:length(edgeArr)
+    if (edgeArr(i) == 0.7)
+        tariIdx = i+1;
+        while ((tariIdx <= length(edgeArr) && edgeArr(tariIdx) ~= 0.7))
+            tariIdx = tariIdx + 1;
+        end
+        tariCurrent = tariIdx - i;
+        if  (0.9*tari < tariCurrent) && (1.1*tari > tariCurrent)
+            bitstream = [bitstream 0];
+        elseif (1.4*tari < tariCurrent) && (2*tari > tariCurrent)
+            bitstream = [bitstream 1];
+        elseif (2*tari < tariCurrent) && (3*tari > tariCurrent)
+            bitstream = [bitstream 2];
+        else
+            break % end of 1st query
+        end
+    end
+end
+
+bitstream
