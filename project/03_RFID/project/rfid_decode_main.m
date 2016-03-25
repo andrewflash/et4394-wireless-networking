@@ -32,22 +32,26 @@ plot (mvAvgArr);
 stdThres = 0.5;
 stdWindow = 10;
 [bitstreamReader, lastIdx] = readReader(mvAvgArr, curIdx, stdThres, stdWindow); 
+bitstreamReader
 curIdx = lastIdx+1;
 
 % Read first tag data
 stdThres = 0.2;     % 
 stdWindow = 5;
 [bitstreamTag, lastIdx] = readTag(mvAvgArr, curIdx, stdThres, stdWindow); 
+bitstreamTag
 curIdx = lastIdx+1;
 
 % Read second query from reader
 stdThres = 0.5;
 stdWindow = 10;
 [bitstreamReader2, lastIdx] = readReader(mvAvgArr, curIdx, stdThres, stdWindow); 
+bitstreamReader2
 curIdx = lastIdx+1;
 
 % Read second tag data
 stdThres = 0.2;
 stdWindow = 5;
 [bitstreamTag2, lastIdx] = readTag(mvAvgArr, curIdx, stdThres, stdWindow); 
+bitstreamTag2
 curIdx = lastIdx+1;
