@@ -3,8 +3,8 @@
 
 % Set parameters
 fName = 'signal.txt';
-% if window = 10 and threshold 0.7, stdThres = 0.03 it can be used to detect reader query
-% if window = 2 and threshold 0.95, it can be used to detect tag data
+% if window = stdWindow = 10 and threshold 0.7, stdThres = 0.03 it can be used to detect reader query
+% if window = stdWindow = 4 and stdThreshold 0.01, it can be used to detect tag data
 window = 4;
 threshold = 0.83;
 stdWindow = 4;
@@ -17,11 +17,7 @@ rawData = fscanf(fHandle, formatData);
 fclose(fHandle);
 rawData = rawData(2600:end);
 
-% Create time scale
-%sz = max(size(rawData)); 
-%t=(0:(sz-1)).*(1e6/freqSampling);     % Time in usec
-
-% Filter moving average
+% Apply moving average filter to remove high frequency noise
 mvAvgArr = [];
 for i=1:length(rawData)
     mvAvg = 0;    
@@ -39,8 +35,10 @@ figure(1);
 hold on;
 plot (mvAvgArr);
 
-% Calculate 1 tari and detect rising edges
-% 1) Creating zero one graph
+% Detect rising/falling edges and calculating size of 1 Tari
+% 1) Creating pulse graph. If standard variance is high, there must be a
+% slope. If there is a slope, stdDevArr value is set to high. Otherwise,
+% low.
 stdDevArr = [];
 for i=1:length(mvAvgArr)
     stdDev = 0;
@@ -56,7 +54,9 @@ end
 %hold on;
 %plot (stdDevArr);
 
-% 2) Find slopes
+% Detect rising/falling edges and calculating size of 1 Tari
+% 2) In order to find the edge (center of the slope), we need to find the
+% start and end of slope, then find the center inbetween.
 slopeArr = [0];
 for i=1:length(stdDevArr)
     if (i+1 <= length(stdDevArr))
@@ -74,6 +74,9 @@ end
 %plot (slopeArr);
 
 % 3) Find edges
+% As mentioned previously, we find the center of the slope, which is the
+% edge. If it is rising edge, value is high. If it is falling edge, value
+% is negative of high (-high). Otherwise (not an edge), its zero 
 edgeArr = zeros(1,length(slopeArr));
 for i=1:length(slopeArr)
     if (slopeArr(i) == threshold) && ((i+1) < length(slopeArr)) % start of slope
@@ -96,37 +99,37 @@ plot (edgeArr);
 % find period
 period = 17;
 
-% Create bitstream; 2 denotes calibration
+% Create bitstream; 3 denotes v. 
 bitstream = [];
-jArray = [];
+%jArray = [];
 prevIsZero = 0; 
 for i=1:length(edgeArr)
-    if (abs(edgeArr(i)) == threshold)
+    if (abs(edgeArr(i)) == threshold) % this is an edge
         j = 1;
         while (abs(edgeArr(i+j)) ~= threshold) && ((i+j) < length(edgeArr))
-            j = j+1;
+            j = j+1; % iterate until next edge
         end
-        jArray = [jArray j];
+        %jArray = [jArray j];
         if ((0.4*period) < j) && ((0.65*period) > j) % zero
-            if (prevIsZero == 0)
+            if (prevIsZero == 0) % new half period, must be a zero
                 bitstream = [bitstream 0];
                 prevIsZero = 1;
-            else
-                prevIsZero = 0;
+            else % previous bit is zero, this must be the other half period
+                prevIsZero = 0; % ignore this other half period
             end
         elseif ((0.4*period) > j) || (((0.65*period) < j) && ((1.4*period) > j))
             bitstream = [bitstream 1];
             prevIsZero = 0;
-        elseif ((1.4*period) < j) && ((15*period) > j)
+        elseif ((1.4*period) < j) && ((15*period) > j) % 1.5*period means a v
             bitstream = [bitstream 3];
             prevIsZero = 0;
         else
-            break
+            break % delimiter; end of tag backscattering
         end
     elseif (prevIsZero == 1) && (abs(edgeArr(i)) == threshold)
         prevIsZero = 0;
     end
 end
 
-bitstream
-jArray
+%bitstream
+%jArray
