@@ -2,7 +2,10 @@
 % -- Andri Rahmadhani & Bontor Humala, March 2016
 
 function [edgeArr] = edgeDetection(rawData, startIdx, stdThres, stdWindow)
-    % 1) Find slopes using standard deviation
+	% Detect rising/falling edges and calculating size of 1 Tari
+	% 1) Creating pulse graph. If standard variance is high, there must be a
+	% slope. If there is a slope, stdDevArr value is set to high. Otherwise,
+	% low.
     stdDevArr = [];
     edge = 1;
     for i=1:length(rawData)
@@ -16,7 +19,8 @@ function [edgeArr] = edgeDetection(rawData, startIdx, stdThres, stdWindow)
     stdDevArr(stdDevArr > stdThres) = edge;
     stdDevArr(stdDevArr <= stdThres) = 0;
 
-    % 2) Find slopes
+	% 2) In order to find the edge (center of the slope), we need to find the
+	% start and end of slope, then find the center inbetween.
     slopeArr = [0];
     for i=1:length(stdDevArr)
         if (i+1 <= length(stdDevArr))
@@ -30,7 +34,10 @@ function [edgeArr] = edgeDetection(rawData, startIdx, stdThres, stdWindow)
         end
     end
 
-    % 3) Find edges, median of slopes
+    % 3) Find edges
+	% As mentioned previously, we find the center of the slope, which is the
+	% edge. If it is rising edge, value is high. If it is falling edge, value
+	% is negative of high (-high). Otherwise (not an edge), its zero.
     edgeArr = zeros(1,length(slopeArr));
     for i=1:length(slopeArr)
         if (slopeArr(i) == edge) && ((i+1) < length(slopeArr)) % start of slope

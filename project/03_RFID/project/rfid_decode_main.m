@@ -12,7 +12,7 @@ formatData = '%f';
 rawData = fscanf(fHandle, formatData);
 fclose(fHandle);
 
-% Filter moving average
+% Apply moving average filter to remove high frequency noise
 mvAvgArr = [];
 for i=1:length(rawData)-window
     mvAvg = 0;    

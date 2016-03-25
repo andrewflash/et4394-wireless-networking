@@ -27,15 +27,15 @@ function [bitstream, lastIdx] = readReader(rawData, startIdx, stdThreshold, stdW
     end
     tari = tariIdx - tariStart;
     
-    % Create bitstream; C denotes calibration
+    % Create one and zero bitstream; C denotes calibration
     bitstream = [];
     for i=startIdx:length(edgeArr)
-        if (edgeArr(i) == edge)
+        if (edgeArr(i) == edge) % this is an edge
             tariIdx = i+1;
             while ((tariIdx <= length(edgeArr) && edgeArr(tariIdx) ~= edge))
-                tariIdx = tariIdx + 1;
+                tariIdx = tariIdx + 1; % iterate until next edge
             end
-            tariCurrent = tariIdx - i;
+            tariCurrent = tariIdx - i; % find distance between edges and compare to tari
             if  (tariCurrent > 0.9*tari) && (tariCurrent < 1.1*tari)
                 bitstream = [bitstream '0'];
             elseif (tariCurrent > 1.4*tari) && (tariCurrent < 2*tari)
@@ -44,7 +44,7 @@ function [bitstream, lastIdx] = readReader(rawData, startIdx, stdThreshold, stdW
                 bitstream = [bitstream 'C'];
             else
                 lastIdx = i;
-                break % end of 1st query
+                break % end of command from reader
             end
         end
     end
