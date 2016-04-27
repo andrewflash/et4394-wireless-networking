@@ -26,6 +26,8 @@ read_database_file = ""
 result_dir = "result/"
 default_database = "dvbt_freq_delft.txt"
 bandwidth = 8000000
+auto_recog = 0
+use_list = 0
 
 # Timestamp for file name
 f_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -35,7 +37,7 @@ f_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 def scan_freq(tb,start_freq,end_freq,step,interval):
     # Load global variables
     global read_database_file,threshold,threshold_noise,result_dir, \
-        nTrueTrue, totalTrueTrue, f_timestamp, default_database
+        nTrueTrue, totalTrueTrue, f_timestamp
 
     # Noise and threshold info string
     sNoise = ""
@@ -104,6 +106,9 @@ def scan_freq(tb,start_freq,end_freq,step,interval):
     # Analyze ROC
     analyze_ROC(fNameDetection,fNameNoDetection)
 
+    # Exit the program
+    sys.exit(0)
+
 # Get noise level for calculating default threshold
 def get_noise_level(tb,start_freq,end_freq,step,interval):
     level_arr = []
@@ -122,7 +127,7 @@ def get_noise_level(tb,start_freq,end_freq,step,interval):
 
 # Identify signal from bandwidth
 def identify_signal_bw(input_file):
-    global bandwidth, f_timestamp, freq_min, freq_max
+    global bandwidth, f_timestamp, freq_min, freq_max, auto_recog
 
     freq = []
     level = []
@@ -140,6 +145,7 @@ def identify_signal_bw(input_file):
 
     # Plot signal level
     fNamePlt = result_dir + "dvbt_freq_results_" + f_timestamp
+    plt.clf()
     plt.plot(freq, level)
     plt.xlabel('frequency (Hz)')
     plt.ylabel('level (dB)')
@@ -162,48 +168,59 @@ def identify_signal_bw(input_file):
     plt.savefig(fNamePlt + ".svg")
     plt.close()
 
-    # Compare with bandwidth
-    step_size = int(round(bandwidth/(float(freq[1]) - float(freq[0]))))
-
-    detection_window = []
-    detection_mean = []
-    detection_std = []
     detection_res = []
     detection_no_res = []
     level_res = []
     level_no_res = []
-    for j in range(0,len(detection)-step_size):
-        for k in range(0,step_size):
-            detection_window.append(float(detection[j+k]))
-        detection_mean.append(np.mean(detection_window))
-        detection_std.append(np.std(detection_window))
+
+    if auto_recog:
+        # Compare with bandwidth
+        step_size = int(round(bandwidth/(float(freq[1]) - float(freq[0]))))
+
         detection_window = []
+        detection_mean = []
+        detection_std = []
+    
+        for j in range(0,len(detection)-step_size):
+            for k in range(0,step_size):
+                detection_window.append(float(detection[j+k]))
+            detection_mean.append(np.mean(detection_window))
+            detection_std.append(np.std(detection_window))
+            detection_window = []
 
-    i = 0
-    start_counting = 0
-    dTemp = []
-    for j in range(0,len(detection_std)-1):
-        # Rising edge
-        if detection_std[j] >= 0.5 and detection_mean[j+1] > detection_mean[j]:
-            if start_counting != 1:
-                start_counting = 1
-        # Falling edge
-        elif detection_std[j] >= 0.5 and detection_mean[j+1] < detection_mean[j]:
-            if start_counting != 0:
-                start_counting = 0
-                i = 0
-                # Compare with bandwidth
-                if(len(dTemp) >= step_size - 1 and len(dTemp) <= step_size + 1):
-                    detection_res.append(freq[int(np.median(dTemp))])
-                    level_res.append(level[int(np.median(dTemp))])
-                dTemp = []
+        i = 0
+        start_counting = 0
+        dTemp = []
+        for j in range(0,len(detection_std)-1):
+            # Rising edge
+            if detection_std[j] >= 0.5 and detection_mean[j+1] > detection_mean[j]:
+                if start_counting != 1:
+                    start_counting = 1
+            # Falling edge
+            elif detection_std[j] >= 0.5 and detection_mean[j+1] < detection_mean[j]:
+                if start_counting != 0:
+                    start_counting = 0
+                    i = 0
+                    # Compare with bandwidth
+                    if(len(dTemp) >= step_size - 1 and len(dTemp) <= step_size + 1):
+                        detection_res.append(freq[int(np.median(dTemp))])
+                        level_res.append(level[int(np.median(dTemp))])
+                    dTemp = []
 
-        if start_counting:
-            dTemp.append(j+i)
-            i = i + 1
-        else:
-            detection_no_res.append(freq[j])
-            level_no_res.append(level[j])
+            if start_counting:
+                dTemp.append(j+i)
+                i = i + 1
+            else:
+                detection_no_res.append(freq[j])
+                level_no_res.append(level[j])
+    else:
+        for i in range(0,len(detection)):
+            if float(detection[i]) >= 1:
+                detection_res.append(freq[i])
+                level_res.append(level[i])
+            else:
+                detection_no_res.append(freq[i])
+                level_no_res.append(level[i])
 
     # Save to file
     s = "Detection Results (Hz):"
@@ -213,7 +230,7 @@ def identify_signal_bw(input_file):
     f.write(s+"\n")
     for i in range(0,len(detection_res)):
         print "%s" % (detection_res[i])
-        f.write(detection_res[i]+"\t"+level_res[i]+"\n")
+        f.write(detection_res[i]+"\t"+level_res[i]+"\t"+threshold+"\n")
     f.close()
 
     sNo = "No Detection Results (Hz):"
@@ -221,23 +238,38 @@ def identify_signal_bw(input_file):
     fNo = open(fNameNoDetection,'w')
     fNo.write(sNo+"\n")
     for i in range(0,len(detection_no_res)):
-        fNo.write(detection_no_res[i]+"\t"+level_no_res[i]+"\n")
+        fNo.write(detection_no_res[i]+"\t"+level_no_res[i]+"\t"+threshold+"\n")
     fNo.close()
 
     # return fileName results
     return (fNameDetection,fNameNoDetection)
+
 # Analyze ROC
 def analyze_ROC(input_file_result,input_file_no_detection):
-    global threshold
+    global threshold, use_list, default_database
 
     threshold = -60
+    freq_true_list = []
+
+    if use_list:
+        # Read from list
+        with open(default_database,'r') as f:
+            for l in f:
+                s = l.strip()
+                if s[0].isdigit():
+                    freq_true_list.append(float(s))
+
     # Read results
     level = []
     with open(input_file_result,'r') as f:
         for l in f:
             s = l.strip().split("\t")
             if s[0][0].isdigit():
-                level.append(float(s[1]))
+                if use_list:
+                    if float(s[0]) in freq_true_list:
+                        level.append(float(s[1]))
+                else:
+                    level.append(float(s[1]))
 
     # Read no detection results
     level_no = []
@@ -245,7 +277,14 @@ def analyze_ROC(input_file_result,input_file_no_detection):
         for l in f:
             s = l.strip().split("\t")
             if s[0][0].isdigit():
-                level_no.append(float(s[1]))
+                if use_list:
+                    if float(s[0]) not in freq_true_list:
+                        level_no.append(float(s[1]))
+                    else:
+                        # Add to level detection though is not detected
+                        level.append(float(s[1]))
+                else:
+                    level_no.append(float(s[1]))
 
     level_mean = np.mean(level)
     level_std = np.std(level)
@@ -271,18 +310,23 @@ def analyze_ROC(input_file_result,input_file_no_detection):
     fNameProb = result_dir + "dvbt_prob_results_" + f_timestamp + ".txt"
     f = open(fNameProb,'w')
     f.write("Probability of Detection = " + str(Pd) + "\n")
+    f.write("Mean = " + str(level_mean) + "\n")
+    f.write("Stdev = " + str(level_std) + "\n")
     f.write("Probability of False Alarm = " + str(Pfa) + "\n")
+    f.write("Mean = " + str(level_no_mean) + "\n")
+    f.write("Stdev = " + str(level_no_std) + "\n")
     f.close()
 
     # Create Ptarget pdf
     fNamePlt = result_dir + 'dvbt_pdf_results_' + f_timestamp
     PtargetPdf = stats.norm.pdf(Ptarget_sorted,np.mean(Ptarget_sorted),np.std(Ptarget_sorted))
-    plt.plot(Ptarget_sorted,PtargetPdf)
+    plt.plot(Ptarget_sorted,PtargetPdf,label='target present')
     PnotargetPdf = stats.norm.pdf(Pnotarget_sorted,np.mean(Pnotarget_sorted),np.std(Pnotarget_sorted))
-    plt.plot(Pnotarget_sorted,PnotargetPdf,hold=1)
-    plt.axvline(x=threshold,color='k',linestyle='dashed',hold=1)
+    plt.plot(Pnotarget_sorted,PnotargetPdf,hold=1,label='no target present')
+    plt.axvline(x=threshold,color='k',linestyle='dashed',hold=1,label='threshold')
     plt.xlabel('level (dB)')
     plt.title('RTL-SDR detection probability')
+    plt.legend(loc='upper right')
     plt.savefig(fNamePlt + ".png")
     plt.savefig(fNamePlt + ".svg")
     plt.close()
@@ -318,27 +362,33 @@ def main(argv):
     global freq_min, freq_max, \
        freq_step,freq_scan_interval, \
        threshold,threshold_noise, \
-       result_dir
+       result_dir, use_list, bandwidth, \
+       auto_recog, read_database_file
+
+    help_string = \
+        "DVB-T Signal Detector by A. Rahmadhani\n" + \
+        "--------------------------------------\n\n" + \
+        "Usage: signal_detector_main.py [options]\n\n" + \
+        "[options]:\n" + \
+        "  -h : help\n" + \
+        "  -r : try to recognize signal automatically\n" + \
+        "  -q : use known DVB-T frequency list\n" + \
+        "  -o <file_name> : read known frequency from file\n" + \
+        "  -l <min_freq> : minimum frequency (Hz)\n" + \
+        "  -u <max_freq> : maximum frequency (Hz)\n" + \
+        "  -s <freq_step> : frequency_step \n" + \
+        "  -i <interval> : interval or waiting time (s)\n" + \
+        "  -t <threshold> : threshold value (dB)\n" + \
+        "  -p <auto_threshold_diff> : percentage of threshold stdev\n" + \
+        "  -b <bandwidth> : specify DVB-T bandwidth (Hz)h\n"
 
     # Read command line arguments
     try:
-        opts, args = getopt.getopt(argv,"hl:u:s:i:t:p:o:b:",
-            ["help","lfreq=","ufreq=","step=","interval=", 
-            "threshold=","threshold_diff=","open_data="])
-        help_string = \
-            "DVB-T Signal Detector by A. Rahmadhani\n" + \
-            "--------------------------------------\n\n" + \
-            "Usage: signal_detector_main.py [options]\n\n" + \
-            "[options]:\n" + \
-            "  -h : help\n" + \
-            "  -o <file_name> : read known frequency from file\n" + \
-            "  -l <min_freq> : minimum frequency (Hz)\n" + \
-            "  -u <max_freq> : maximum frequency (Hz)\n" + \
-            "  -s <freq_step> : frequency_step \n" + \
-            "  -i <interval> : interval or waiting time (s)\n" + \
-            "  -t <threshold> : threshold value (dB)\n" + \
-            "  -p <auto_threshold_diff> : percentage of threshold stdev\n" + \
-            "  -b <bandwidth> : specify DVB-T bandwidth (Hz)h\n"
+        opts, args = getopt.getopt(argv,"hrql:u:s:i:t:p:o:b:",
+            ["help","auto","lfreq=","ufreq=","step=","interval=", 
+            "threshold=","threshold_diff=","open_data=",
+            "bandwidth="])
+
     except getopt.GetoptError:
         print help_string
         sys.exit(2)
@@ -346,6 +396,10 @@ def main(argv):
         if opt in ("-h", "--help"):
             print help_string
             sys.exit()
+        elif opt in ("-r", "--auto"):
+            auto_recog = 1
+        elif opt in ("-q", "--uselist"):
+            use_list = 1
         elif opt in ("-l", "--lfreq"):
             freq_min = float(arg)
         elif opt in ("-u", "--hfreq"):
@@ -353,13 +407,16 @@ def main(argv):
         elif opt in ("-s", "--step"):
             freq_step = float(arg)
         elif opt in ("-i", "--interval"):
-            interval = float(arg)
+            freq_scan_interval = float(arg)
         elif opt in ("-t", "--threshold"):
             threshold = float(arg)
         elif opt in ("-p", "--threshold_diff"):
             threshold_noise = float(arg)
         elif opt in ("-o", "--open_data"):
             read_database_file = str(arg)
+        elif opt in ("-b", "--bandwidth"):
+            bandwidth = float(arg)
+ 
     # GUI from GNUradio companion
     if os.name == 'posix':
         try:
