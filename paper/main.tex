@@ -1,0 +1,28 @@
+\documentclass [a4,11pt]{article}
+
+\usepackage{geometry}
+
+\geometry{margin=20mm}
+\geometry{top=5mm}
+
+\hyphenation{practicum-ad-mini-stratie}
+
+\begin{document}
+
+\title{[ET4394] Wireless Networking \\ Paper Review Assignment}
+\author{Andri Rahmadhani (4505611) \\ TU Delft - Embedded Systems}
+\date{\today}
+\maketitle
+
+\section{Summary}
+
+The objective of this paper is to design an accurate and efficient method for object tracking using the passive RFID. To achieve this, RFID reader tracking in which the reader is attached to the object being tracked has been used. The reader will continuously locate the object by reading tags deployed in the environment and using a particular algorithm either Weighted Control Localization (WCL) or Particular Filter (PF). WCL is extremely cheap in terms of computational cost, but lack of accuracy for a high velocity object. PF is far more accurate but suffers from high computational cost especially on resource constrained device such as in RFID readers. The hybrid solution is introduced in this paper. The system will adaptively switch between WCL and PF based on the estimated velocity of the mobile object. If the object's velocity is greater than threshold velocity, the system will use PF. Otherwise it will use WCL. In addition, the system can reduce the computational cost by offloading costly PF algorithm onto nearby severs using WLAN. This feature relies on the quailty of the network connections. If the network connections is down or the estimated time needed for establishing communication with remote server is larger than the time needed for doing local computation, the system will
+not offload the computation. Apart from these, there are some challenges that need to be solved. First, the algorithm to estimate current object location should be finished executing before deadline to meet accuracy requirement as we track a moving object instead of stationary one. Second, the RFID detection failure rates is quite high because of noisy environment, causing uncertainty of detection. Detection failure can be reduced by increasing scanning frequency, but it will increase the computation cost. Therefore, two experiments have been made to evaluate the proposed method, namely indoor wheel chair navigation and in-station Light Rail Vehicle (LRV) tracking at one of Hong Kong MTR depots. The results show that the proposed method has significantly less computational cost than existing PF based methods, while still maintains high accuracy as them.
+
+\section{Assessment}
+First, there is no explanation on how the system is calibrated at the first time. This is quite important in order to obtain initial value of the estimation of velocity of the object and noise level as reference for the detection of tags by RFID reader. Second, there is no detailed information about how the RFID reader can detect multiple tags, especially the time needed for detecting multiple tags simultaneously, whether it uses time slot to avoid collision or not. Finally, this method is not suitable for very high speed movement due to the low detection rate of RFID tags.
+
+\section{Potential improvement(s)}
+We can add calibration process on the device to get parameters stated in the previous section and also to obtain the density of tags automatically. Also, instead of communicating with server, we can provide additional high-speed microcontroller to perform calculation locally in RFID reader, which perhaps can reduce computational time.  
+
+\end{document}
