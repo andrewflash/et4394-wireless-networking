@@ -1,0 +1,28 @@
+\chapter{Introduction}
+
+\section{Cognitive Radio and Signal Detector}
+
+Cognitive radio is a radio that can be programmed and configured dynamically to run on an empty channel by automatically detecting available channels or white space in a wireless frequency spectrum. Dynamic Spectrum Access (DSA) is one of the most popular application of cognitive radio where the radio can detect the presence of primary user's frequency range and avoid interfering with it. In DSA, the radio monitors the activity of radio-frequency spectrum and use the available channels before start transmitting~\cite{o2007practical}. Therefore, the effectiveness of cognitive radio relies on signal detector component. 
+
+In this project, the signal detector is build using a portable Software Defined Radio (SDR) device that can be easily configured and programmed using GNURadio. Inside GNURadio, we can design functional block diagrams along with their parameters that can be interconnected each other to build a fully working signal detector. We introduce threshold level of signal detection as a parameter to evaluate the correctness of the detector. The detector has four possible outputs that are so-called Receiver Operating Characteristic (ROC), namely: True Positive (TP) or correct detecting existing signal, False Positive (FP) or false detection, False Negative (FN) or misdetection, and True Negative (TN) or correct detecting non-existing signal. The effective detector should have a high probability of either TP or TN and a low probability of FP and FN.
+
+\section{DVB-T Signal}
+
+Digital Video Broadcasting - Terrestrial (DVB-T) is a standard used in television broadcasting system mostly in Europe to transmit digital video~\cite{ianPoole}. It uses Orthogonal Frequency Division Multiplex (OFDM) transmission schemes to transmit several video and audio broadcast, which are multiplexed into a single carrier signal. DVB-T works on frequency range from 478 MHz to 862 MHz and employs several modulation systems, such as QPSK, 16QAM, and 64QAM~\cite{riviello2013sensing}. In Netherlands, especially in Delft, there are several DVB-T Multiplexer (MUX) operators that are currently operating as seen in Table~\ref{tab:delft-dvb}. Note that all operators in Table~\ref{tab:delft-dvb} have the same 8 MHz bandwidth~\cite{radiotvnederland}.
+
+\begin{table}[h]
+    \centering \caption{Frequency and Channel of DVB-T MUX operators in Delft}
+    \begin{tabular}{c|c|c}
+    \hline
+    \textbf{DVB-T MUX Operator}     & \textbf{UHF Channel} & \textbf{Center Frequency (MHz)} \\ \hline \hline
+    RTS Bouquet 1          & 52          & 722                    \\ \hline
+    NTS1 Bouquet 2         & 49          & 698                    \\ \hline
+    NTS2   			Bouquet 3    & 57          & 762                    \\ \hline
+    NTS3 Bouquet 4         & 24          & 498                    \\ \hline
+    NTS4  			Bouquet  			5 & 27          & 522                    \\ \hline
+    \end{tabular}
+    \label{tab:delft-dvb}
+\end{table}
+
+
+In this project, the signal in Table~\ref{tab:delft-dvb} should be detected by our implemented signal detector. If all the signals are detected correctly, it indicates that the system run as secondary user can safely work on unused frequencies within DVB-T spectrum range. Note that not all of the DVB-T channels are occupied the entire DVB-T spectrum range. Most of them are unused in certain area. This becomes the reason why DVB-T spectrum range is used frequently in cognitive radio applications.

@@ -1,5 +1,5 @@
 from datetime import datetime
-import sys, getopt
+import os, sys, getopt
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
@@ -11,11 +11,12 @@ freq_step = 1e6
 freq_scan_interval = 5
 threshold = 99999
 threshold_noise = 0.7
-result_dir = ""
 bandwidth = 8000000
 auto_recog = 0
+compare_bw = 0
 
 f_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+result_dir = 'results_' + f_timestamp + '/'
 
 def main(argv):
 
@@ -23,7 +24,7 @@ def main(argv):
        freq_step,freq_scan_interval, \
        threshold,threshold_noise, \
        result_dir, use_list, bandwidth, \
-       auto_recog
+       auto_recog, compare_bw
 
     input_file=""
 
@@ -35,6 +36,7 @@ def main(argv):
         "  -h : help\n" + \
         "  -r : try to recognize signal automatically\n" + \
         "  -q : use known DVB-T frequency list\n" + \
+        "  -c : compare bandwidth to identify signal\n" + \
         "  -o <file_name> : input scanner results file\n" + \
         "  -l <min_freq> : minimum frequency (Hz)\n" + \
         "  -u <max_freq> : maximum frequency (Hz)\n" + \
@@ -46,8 +48,8 @@ def main(argv):
 
     # Read command line arguments
     try:
-        opts, args = getopt.getopt(argv,"hrql:u:s:i:t:p:o:b:",
-            ["help","auto","lfreq=","ufreq=","step=","interval=", 
+        opts, args = getopt.getopt(argv,"hrqcl:u:s:i:t:p:o:b:",
+            ["help","auto","compare","lfreq=","ufreq=","step=","interval=", 
             "threshold=","threshold_diff=","open_data=",
             "bandwidth="])
 
@@ -76,12 +78,21 @@ def main(argv):
             input_file = str(arg)
         elif opt in ("-b", "--bandwidth"):
             bandwidth = float(arg)
+        elif opt in ("-c", "--compare"):
+            compare_bw = 1
+
+    # Create result dir if not exists
+    try:
+        os.makedirs(result_dir)
+    except OSError:
+        pass
 
     identify_signal_bw(input_file)
 
 # Identify signal from bandwidth
 def identify_signal_bw(input_file):
-    global bandwidth, f_timestamp, freq_min, freq_max, auto_recog
+    global bandwidth, f_timestamp, freq_min, freq_max, \
+        auto_recog, compare_bw
 
     freq = []
     level = []
@@ -106,7 +117,7 @@ def identify_signal_bw(input_file):
     plt.grid(True)
     plt.axhline(y=threshold,color='r')
     plt.savefig(fNamePlt + ".png")
-    plt.savefig(fNamePlt + ".svg")
+    plt.savefig(fNamePlt + ".pdf")
     plt.close()
 
     # Plot signal detection
@@ -118,54 +129,53 @@ def identify_signal_bw(input_file):
     plt.title('Detection of detector in the given range')
     plt.grid(True)
     plt.savefig(fNamePlt + ".png")
-    plt.savefig(fNamePlt + ".svg")
+    plt.savefig(fNamePlt + ".pdf")
     plt.close()
 
     detection_res = []
+    detection_res_center = []
     detection_no_res = []
     level_res = []
+    level_res_center = []
     level_no_res = []
 
     if auto_recog:
         # Compare with bandwidth
         step_size = int(round(bandwidth/(float(freq[1]) - float(freq[0]))))
 
-        detection_window = []
-        detection_mean = []
-        detection_std = []
-    
-        for j in range(0,len(detection)-step_size):
-            for k in range(0,step_size):
-                detection_window.append(float(detection[j+k]))
-            detection_mean.append(np.mean(detection_window))
-            detection_std.append(np.std(detection_window))
-            detection_window = []
-
-        i = 0
         start_counting = 0
         dTemp = []
-        for j in range(0,len(detection_std)-1):
-            # Rising edge
-            if detection_std[j] >= 0.5 and detection_mean[j+1] > detection_mean[j]:
-                if start_counting != 1:
-                    start_counting = 1
-            # Falling edge
-            elif detection_std[j] >= 0.5 and detection_mean[j+1] < detection_mean[j]:
-                if start_counting != 0:
-                    start_counting = 0
-                    i = 0
-                    # Compare with bandwidth
-                    if(len(dTemp) >= step_size - 1 and len(dTemp) <= step_size + 1):
-                        detection_res.append(freq[int(np.median(dTemp))])
-                        level_res.append(level[int(np.median(dTemp))])
-                    dTemp = []
-
+        for j in range(0,len(detection)-1):
             if start_counting:
-                dTemp.append(j+i)
-                i = i + 1
+                dTemp.append(j)
             else:
                 detection_no_res.append(freq[j])
                 level_no_res.append(level[j])
+
+            # Rising edge
+            if detection[j+1] > detection[j]:
+                if start_counting != 1:
+                    start_counting = 1     
+            # Falling edge       
+            elif detection[j+1] < detection[j]:
+                if start_counting != 0:
+                    start_counting = 0
+                    # If compare bandwidth is on
+                    if compare_bw:
+                        if(len(dTemp) >= step_size - 1 and len(dTemp) <= step_size + 1):
+                            detection_res_center.append(freq[int(np.median(dTemp))])
+                            level_res_center.append(level[int(np.median(dTemp))])
+                            for idx in dTemp:
+                                detection_res.append(freq[idx])
+                                level_res.append(level[idx])
+                        else:
+                            for idx in dTemp:
+                                detection_no_res.append(freq[idx])
+                                level_no_res.append(level[idx])
+                    else:
+                        detection_res.append(freq[int(np.median(dTemp))])
+                        level_res.append(level[int(np.median(dTemp))])
+                    dTemp = []
     else:
         for i in range(0,len(detection)):
             if float(detection[i]) >= 1:
@@ -179,11 +189,19 @@ def identify_signal_bw(input_file):
     s = "Detection Results (Hz):"
     fNameDetection = result_dir + "dvbt_final_results_" + f_timestamp + ".txt" 
     f = open(fNameDetection,'w')
-    print "\n"+s
     f.write(s+"\n")
     for i in range(0,len(detection_res)):
-        print "%s" % (detection_res[i])
         f.write(detection_res[i]+"\t"+level_res[i]+"\t"+threshold+"\n")
+    f.close()
+
+    s = "Detection Results Center Freq (Hz):"
+    fNameDetection = result_dir + "dvbt_final_center_results_" + f_timestamp + ".txt" 
+    f = open(fNameDetection,'w')
+    print "\n"+s
+    f.write(s+"\n")
+    for i in range(0,len(detection_res_center)):
+        print "%s" % (detection_res_center[i])
+        f.write(detection_res_center[i]+"\t"+level_res_center[i]+"\t"+threshold+"\n")
     f.close()
 
     sNo = "No Detection Results (Hz):"
@@ -193,6 +211,20 @@ def identify_signal_bw(input_file):
     for i in range(0,len(detection_no_res)):
         fNo.write(detection_no_res[i]+"\t"+level_no_res[i]+"\t"+threshold+"\n")
     fNo.close()
+
+    # Plot detected center frequency
+    fNamePlt = result_dir + "dvbt_center_results_" + f_timestamp
+    plt.plot(detection_res_center,[1]*len(detection_res_center),'ro',linewidth=2.0)
+    for i in detection_res_center:
+        plt.axvline(x=i)
+    plt.xlabel('frequency (Hz)')
+    plt.ylabel('detection')
+    plt.ylim(ymax=1.05)
+    plt.title('Center frequency of detected signal in the given range')
+    plt.grid(True)
+    plt.savefig(fNamePlt + ".png")
+    plt.savefig(fNamePlt + ".pdf")
+    plt.close()
 
     # return fileName results
     return (fNameDetection,fNameNoDetection)
