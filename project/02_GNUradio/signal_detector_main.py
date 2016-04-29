@@ -28,6 +28,7 @@ default_database = "dvbt_freq_delft.txt"
 bandwidth = 8000000
 auto_recog = 0
 use_list = 0
+compare_bw = 0
 
 # Timestamp for file name
 f_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -127,7 +128,8 @@ def get_noise_level(tb,start_freq,end_freq,step,interval):
 
 # Identify signal from bandwidth
 def identify_signal_bw(input_file):
-    global bandwidth, f_timestamp, freq_min, freq_max, auto_recog
+    global bandwidth, f_timestamp, freq_min, \
+        freq_max, auto_recog, compare_bw
 
     freq = []
     level = []
@@ -153,7 +155,7 @@ def identify_signal_bw(input_file):
     plt.grid(True)
     plt.axhline(y=threshold,color='r')
     plt.savefig(fNamePlt + ".png")
-    plt.savefig(fNamePlt + ".svg")
+    plt.savefig(fNamePlt + ".pdf")
     plt.close()
 
     # Plot signal detection
@@ -165,54 +167,53 @@ def identify_signal_bw(input_file):
     plt.title('Detection of detector in the given range')
     plt.grid(True)
     plt.savefig(fNamePlt + ".png")
-    plt.savefig(fNamePlt + ".svg")
+    plt.savefig(fNamePlt + ".pdf")
     plt.close()
 
     detection_res = []
+    detection_res_center = []
     detection_no_res = []
     level_res = []
+    level_res_center = []
     level_no_res = []
 
     if auto_recog:
         # Compare with bandwidth
         step_size = int(round(bandwidth/(float(freq[1]) - float(freq[0]))))
 
-        detection_window = []
-        detection_mean = []
-        detection_std = []
-    
-        for j in range(0,len(detection)-step_size):
-            for k in range(0,step_size):
-                detection_window.append(float(detection[j+k]))
-            detection_mean.append(np.mean(detection_window))
-            detection_std.append(np.std(detection_window))
-            detection_window = []
-
-        i = 0
         start_counting = 0
         dTemp = []
-        for j in range(0,len(detection_std)-1):
-            # Rising edge
-            if detection_std[j] >= 0.5 and detection_mean[j+1] > detection_mean[j]:
-                if start_counting != 1:
-                    start_counting = 1
-            # Falling edge
-            elif detection_std[j] >= 0.5 and detection_mean[j+1] < detection_mean[j]:
-                if start_counting != 0:
-                    start_counting = 0
-                    i = 0
-                    # Compare with bandwidth
-                    if(len(dTemp) >= step_size - 1 and len(dTemp) <= step_size + 1):
-                        detection_res.append(freq[int(np.median(dTemp))])
-                        level_res.append(level[int(np.median(dTemp))])
-                    dTemp = []
-
+        for j in range(0,len(detection)-1):
             if start_counting:
-                dTemp.append(j+i)
-                i = i + 1
+                dTemp.append(j)
             else:
                 detection_no_res.append(freq[j])
                 level_no_res.append(level[j])
+
+            # Rising edge
+            if detection[j+1] > detection[j]:
+                if start_counting != 1:
+                    start_counting = 1     
+            # Falling edge       
+            elif detection[j+1] < detection[j]:
+                if start_counting != 0:
+                    start_counting = 0
+                    # If compare bandwidth is on
+                    if compare_bw:
+                        if(len(dTemp) >= step_size - 1 and len(dTemp) <= step_size + 1):
+                            detection_res_center.append(freq[int(np.median(dTemp))])
+                            level_res_center.append(level[int(np.median(dTemp))])
+                            for idx in dTemp:
+                                detection_res.append(freq[idx])
+                                level_res.append(level[idx])
+                        else:
+                            for idx in dTemp:
+                                detection_no_res.append(freq[idx])
+                                level_no_res.append(level[idx])
+                    else:
+                        detection_res.append(freq[int(np.median(dTemp))])
+                        level_res.append(level[int(np.median(dTemp))])
+                    dTemp = []
     else:
         for i in range(0,len(detection)):
             if float(detection[i]) >= 1:
@@ -241,6 +242,20 @@ def identify_signal_bw(input_file):
         fNo.write(detection_no_res[i]+"\t"+level_no_res[i]+"\t"+threshold+"\n")
     fNo.close()
 
+    # Plot detected center frequency
+    fNamePlt = result_dir + "dvbt_center_results_" + f_timestamp
+    plt.plot(detection_res,[1]*len(detection_res),'ro',linewidth=2.0)
+    for i in detection_res:
+        plt.axvline(x=i)
+    plt.xlabel('frequency (Hz)')
+    plt.ylabel('detection')
+    plt.ylim(ymax=1.05)
+    plt.title('Center frequency of detected signal in the given range')
+    plt.grid(True)
+    plt.savefig(fNamePlt + ".png")
+    plt.savefig(fNamePlt + ".pdf")
+    plt.close()
+
     # return fileName results
     return (fNameDetection,fNameNoDetection)
 
@@ -248,7 +263,6 @@ def identify_signal_bw(input_file):
 def analyze_ROC(input_file_result,input_file_no_detection):
     global threshold, use_list, default_database
 
-    threshold = -60
     freq_true_list = []
 
     if use_list:
@@ -265,11 +279,8 @@ def analyze_ROC(input_file_result,input_file_no_detection):
         for l in f:
             s = l.strip().split("\t")
             if s[0][0].isdigit():
-                if use_list:
-                    if float(s[0]) in freq_true_list:
-                        level.append(float(s[1]))
-                else:
-                    level.append(float(s[1]))
+                level.append(float(s[1]))
+                threshold = float(s[2])
 
     # Read no detection results
     level_no = []
@@ -328,7 +339,7 @@ def analyze_ROC(input_file_result,input_file_no_detection):
     plt.title('RTL-SDR detection probability')
     plt.legend(loc='upper right')
     plt.savefig(fNamePlt + ".png")
-    plt.savefig(fNamePlt + ".svg")
+    plt.savefig(fNamePlt + ".pdf")
     plt.close()
     
     # Create ROC plot and save to file
@@ -347,7 +358,7 @@ def analyze_ROC(input_file_result,input_file_no_detection):
     plt.ylabel('Probability of Detection')
     plt.title('RTL-SDR ROC curves')
     plt.savefig(fNamePlt + ".png")
-    plt.savefig(fNamePlt + ".svg")
+    plt.savefig(fNamePlt + ".pdf")
     plt.close()
 
 # Find nearest value for ROC analysis
@@ -363,7 +374,8 @@ def main(argv):
        freq_step,freq_scan_interval, \
        threshold,threshold_noise, \
        result_dir, use_list, bandwidth, \
-       auto_recog, read_database_file
+       auto_recog, read_database_file, \
+       compare_bw
 
     help_string = \
         "DVB-T Signal Detector by A. Rahmadhani\n" + \
@@ -373,6 +385,7 @@ def main(argv):
         "  -h : help\n" + \
         "  -r : try to recognize signal automatically\n" + \
         "  -q : use known DVB-T frequency list\n" + \
+        "  -c : compare bandwidth to identify signal\n" + \
         "  -o <file_name> : read known frequency from file\n" + \
         "  -l <min_freq> : minimum frequency (Hz)\n" + \
         "  -u <max_freq> : maximum frequency (Hz)\n" + \
@@ -384,10 +397,10 @@ def main(argv):
 
     # Read command line arguments
     try:
-        opts, args = getopt.getopt(argv,"hrql:u:s:i:t:p:o:b:",
+        opts, args = getopt.getopt(argv,"hrqcl:u:s:i:t:p:o:b:",
             ["help","auto","lfreq=","ufreq=","step=","interval=", 
             "threshold=","threshold_diff=","open_data=",
-            "bandwidth="])
+            "bandwidth=","compare"])
 
     except getopt.GetoptError:
         print help_string
@@ -416,7 +429,9 @@ def main(argv):
             read_database_file = str(arg)
         elif opt in ("-b", "--bandwidth"):
             bandwidth = float(arg)
- 
+        elif opt in ("-c", "--compare"):
+            compare_bw = 1 
+
     # GUI from GNUradio companion
     if os.name == 'posix':
         try:

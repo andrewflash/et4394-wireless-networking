@@ -1,0 +1,9 @@
+\chapter{Project Description}
+
+\section{Objective}
+
+The objective of this project is to design and implement a simple, yet effective digital television (DVB-T) signal detector using GNURadio. The detector output can be used to obtain empty channels available within DVB-T frequency band. In order to get correct and reliable results, the detector is tested and characterized under varying channel condition and threshold, e.g. measure on different places with different noise level. From this, we can evaluate whether the detector is able to capture the correct signal or just throwing a false detection. Therefore, we have to improve the mechanism of the detector to increase the performance of detection.
+
+\section{Hypothesis}
+
+The decision whether the signal is detected or not depends on the threshold value. The probability of false detection in which the detector gives positive detection when there is no real signal appeared will be decreased if we increase the threshold value. However, the probability of misdetection will increase as the low signal, which has a signal level around noise or reference level, will not be detected. On the contrary, if we decrease the threshold value, the probability of false detection will be increase and the probability of misdetection will be decreased as the noise slightly above threshold value could also be detected as a signal.

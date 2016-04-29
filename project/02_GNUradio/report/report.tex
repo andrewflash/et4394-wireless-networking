@@ -1,0 +1,47 @@
+\documentclass{tudelft-report}
+
+\usepackage[justification=centering]{caption}
+\usepackage{makecell}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{float}
+
+\begin{document}
+
+%% Use Roman numerals for the page numbers of the title pages and table of
+%% contents.
+\frontmatter
+
+\title[ET4394 Wireless Networking]{GNU Radio Project Report}
+\author{Andri Rahmadhani - 4505611}
+\affiliation{Technische Universiteit Delft}
+%\coverimage{cover.jpg}
+\makecover
+
+%% Include an optional title page.
+%\input{title}
+
+%\input{preface}
+
+\tableofcontents
+
+%% Use Arabic numerals for the page numbers of the chapters.
+\mainmatter
+
+\input{chapter-1}
+\input{chapter-2}
+\input{chapter-3}
+\input{chapter-4}
+\input{chapter-5}
+
+%% Use letters for the chapter numbers of the appendices.
+%\appendix
+
+%\input{appendix-a}
+
+\renewcommand\bibname{References}
+\bibliography{report}
+
+\end{document}

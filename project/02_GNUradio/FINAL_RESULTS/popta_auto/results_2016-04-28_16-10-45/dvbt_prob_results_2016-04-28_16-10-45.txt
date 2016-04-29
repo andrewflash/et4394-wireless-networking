@@ -1,0 +1,6 @@
+Probability of Detection = 0.999985404776
+Mean = -51.7339804
+Stdev = 4.78910176951
+Probability of False Alarm = 0.350691476005
+Mean = -76.2183279469
+Stdev = 6.67928860324

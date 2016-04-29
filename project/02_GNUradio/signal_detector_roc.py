@@ -1,18 +1,22 @@
 from datetime import datetime
-import sys, getopt
+import os, sys, getopt
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 
 use_list = 0
 default_database = "dvbt_freq_delft.txt"
-result_dir = ''
 f_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+result_dir = 'results_' + f_timestamp + '/'
 x_lim = 0.3
+y_lim = 0.3
+y_lim_min = 0.5
+threshold = -70
+use_threshold = 0
 
 def main(argv):
 
-    global x_lim, use_list
+    global x_lim, y_lim, y_lim_min, use_list, threshold, use_threshold
 
     input_file_result = ""
     input_file_no_detection = ""
@@ -26,11 +30,14 @@ def main(argv):
         "  -q : use known DVB-T frequency list\n" + \
         "  -d <file_name> : signal detection results\n" + \
         "  -n <file_name> : signal not-detected results\n" + \
-        "  -x <x_limit> : limit x axis"
+        "  -x <x_limit> : limit x axis for ROC\n" + \
+        "  -l <y_min> : minimum y axis for ROC\n" + \
+        "  -y <y_limit> : limit y axis for PDF curves\n" + \
+        "  -t <threshold> : obtain result at specific threshold\n"
 
     # Read command line arguments
     try:
-        opts, args = getopt.getopt(argv,"hqx:d:n:")
+        opts, args = getopt.getopt(argv,"hqx:y:d:n:l:t:")
     except getopt.GetoptError:
         print help_string
         sys.exit(2)
@@ -46,13 +53,19 @@ def main(argv):
             input_file_no_detection = str(arg)
         elif opt == "-x":
             x_lim = float(arg)
+        elif opt == "-y":
+            y_lim = float(arg)
+        elif opt == "-l":
+            y_lim_min = float(arg)
+        elif opt == "-t":
+            threshold = float(arg)
+            use_threshold = 1
 
     analyze_ROC(input_file_result,input_file_no_detection)
 
 def analyze_ROC(input_file_result,input_file_no_detection):
-    global use_list, default_database, result_dir, x_lim
+    global use_list, default_database, result_dir, x_lim, y_lim, y_lim_min, threshold, use_threshold
 
-    threshold = -70
     freq_true_list = []
 
     if use_list:
@@ -63,8 +76,10 @@ def analyze_ROC(input_file_result,input_file_no_detection):
                 if s[0].isdigit():
                     freq_true_list.append(float(s))
 
-    # Read results
     level = []
+    level_no = []
+
+    # Read results
     with open(input_file_result,'r') as f:
         for l in f:
             s = l.strip().split("\t")
@@ -72,12 +87,21 @@ def analyze_ROC(input_file_result,input_file_no_detection):
                 if use_list:
                     if float(s[0]) in freq_true_list:
                         level.append(float(s[1]))
+                    else:
+                        # Add to no-detection though is detected (false alarm)
+                        level_no.append(float(s[1]))
                 else:
                     level.append(float(s[1]))
-                #threshold = s[2]
+                if use_threshold == 0:
+                    threshold = float(s[2])
+
+    # Create result dir if not exists
+    try:
+        os.makedirs(result_dir)
+    except OSError:
+        pass
 
     # Read no detection results
-    level_no = []
     with open(input_file_no_detection,'r') as f:
         for l in f:
             s = l.strip().split("\t")
@@ -86,7 +110,7 @@ def analyze_ROC(input_file_result,input_file_no_detection):
                     if float(s[0]) not in freq_true_list:
                         level_no.append(float(s[1]))
                     else:
-                        # Add to level detection though is not detected
+                        # Add to level detection though is not detected (misdetection)
                         level.append(float(s[1]))
                 else:
                     level_no.append(float(s[1]))
@@ -132,8 +156,9 @@ def analyze_ROC(input_file_result,input_file_no_detection):
     plt.xlabel('level (dB)')
     plt.title('RTL-SDR detection probability')
     plt.legend(loc='upper right')
+    plt.ylim(ymax=y_lim)
     plt.savefig(fNamePlt + ".png")
-    plt.savefig(fNamePlt + ".svg")
+    plt.savefig(fNamePlt + ".pdf")
     plt.close()
     
     # Create ROC plot and save to file
@@ -151,9 +176,10 @@ def analyze_ROC(input_file_result,input_file_no_detection):
     plt.xlabel('Probability of False Alarm')
     plt.ylabel('Probability of Detection')
     plt.xlim(xmax=x_lim)
+    plt.ylim(ymin=y_lim_min)
     plt.title('RTL-SDR ROC curves')
     plt.savefig(fNamePlt + ".png")
-    plt.savefig(fNamePlt + ".svg")
+    plt.savefig(fNamePlt + ".pdf")
     plt.close()
 
 # Find nearest value for ROC analysis
