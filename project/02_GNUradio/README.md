@@ -26,13 +26,10 @@ Usage:
 ### Example
 
 1. Use automatic frequency scan, find threshold value, and try to recognize DVB-T signal. Compare the result with known list to verify the signal. Use default 8 MHz bandwidth and compare the result. Use default value for other parameters. 
-
 ```
 	python signal_detector_main.py -r -q -c
 ```
-
 2. Same as previous example but no need to search threshold value. We specify threshold manually.
-
 ```
 	python signal_detector_main.py -r -q -c -t -60
 ```

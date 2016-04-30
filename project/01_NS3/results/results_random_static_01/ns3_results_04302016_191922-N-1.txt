@@ -1,0 +1,90 @@
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1037868	2.27667	9.58607	
+--- end collecting data ---
+Avg: 2.27667
+Tot: 2.27667
+Var: 0
+loss: 142716
+sent: 1037868
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1037868	2.27456	2.78896	
+--- end collecting data ---
+Avg: 2.27456
+Tot: 2.27456
+Var: 0
+loss: 143844
+sent: 1037868
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1032228	2.26063	0.191113	
+--- end collecting data ---
+Avg: 2.26063
+Tot: 2.26063
+Var: 0
+loss: 143844
+sent: 1032228
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1036740	2.27337	3.394	
+--- end collecting data ---
+Avg: 2.27337
+Tot: 2.27337
+Var: 0
+loss: 143256
+sent: 1036740
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1031100	2.25788	6.5969	
+--- end collecting data ---
+Avg: 2.25788
+Tot: 2.25788
+Var: 0
+loss: 143844
+sent: 1031100
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1033356	2.2651	3.99905	
+--- end collecting data ---
+Avg: 2.2651
+Tot: 2.2651
+Var: 0
+loss: 142716
+sent: 1033356
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1031100	2.25794	7.20189	
+--- end collecting data ---
+Avg: 2.25794
+Tot: 2.25794
+Var: 0
+loss: 143256
+sent: 1031100
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1033896	2.26548	0.40478	
+--- end collecting data ---
+Avg: 2.26548
+Tot: 2.26548
+Var: 0
+loss: 143256
+sent: 1033896
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1038996	2.27776	7.80694	
+--- end collecting data ---
+Avg: 2.27776
+Tot: 2.27776
+Var: 0
+loss: 143844
+sent: 1038996
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	1035612	2.27076	1.00983	
+--- end collecting data ---
+Avg: 2.27076
+Tot: 2.27076
+Var: 0
+loss: 142716
+sent: 1035612

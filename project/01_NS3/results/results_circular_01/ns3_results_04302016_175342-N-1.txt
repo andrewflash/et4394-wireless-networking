@@ -1,0 +1,90 @@
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3099852	2.2562	10	
+--- end collecting data ---
+Avg: 2.2562
+Tot: 2.2562
+Var: 0
+loss: 142716
+sent: 3099852
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3098724	2.25503	10	
+--- end collecting data ---
+Avg: 2.25503
+Tot: 2.25503
+Var: 0
+loss: 143256
+sent: 3098724
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3091368	2.24939	10	
+--- end collecting data ---
+Avg: 2.24939
+Tot: 2.24939
+Var: 0
+loss: 143256
+sent: 3091368
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3088572	2.24699	10	
+--- end collecting data ---
+Avg: 2.24699
+Tot: 2.24699
+Var: 0
+loss: 143844
+sent: 3088572
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3084060	2.24405	10	
+--- end collecting data ---
+Avg: 2.24405
+Tot: 2.24405
+Var: 0
+loss: 143256
+sent: 3084060
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3094752	2.25199	10	
+--- end collecting data ---
+Avg: 2.25199
+Tot: 2.25199
+Var: 0
+loss: 143256
+sent: 3094752
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3089700	2.24839	10	
+--- end collecting data ---
+Avg: 2.24839
+Tot: 2.24839
+Var: 0
+loss: 142716
+sent: 3089700
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3091956	2.25081	10	
+--- end collecting data ---
+Avg: 2.25081
+Tot: 2.25081
+Var: 0
+loss: 142128
+sent: 3091956
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3096468	2.25357	10	
+--- end collecting data ---
+Avg: 2.25357
+Tot: 2.25357
+Var: 0
+loss: 142716
+sent: 3096468
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	1	150	3096468	2.25357	10	
+--- end collecting data ---
+Avg: 2.25357
+Tot: 2.25357
+Var: 0
+loss: 142716
+sent: 3096468
