@@ -1,0 +1,24 @@
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	4	150	307632	0.671106	10	
+10.1.1.3	4	150	245892	0.568646	10	
+10.1.1.4	4	150	376428	0.792999	10	
+10.1.1.5	4	150	248244	0.566997	10	
+--- end collecting data ---
+Avg: 0.649937
+Tot: 2.59975
+Var: 0.00891809
+loss: 157584
+sent: 1178196
+--- start collecting data ---
+Source Address	n	RTS/CTS	Tx(by)	Throughput	Distance	
+10.1.1.2	4	150	309984	0.666461	10	
+10.1.1.3	4	150	309396	0.688464	10	
+10.1.1.4	4	150	288228	0.630095	10	
+10.1.1.5	4	150	284700	0.631195	10	
+--- end collecting data ---
+Avg: 0.654054
+Tot: 2.61622
+Var: 0.00235748
+loss: 166404
+sent: 1192308

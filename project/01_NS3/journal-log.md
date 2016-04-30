@@ -1,5 +1,15 @@
 # Work Journal
 
+## 30 April
+1. Finishing the report
+2. Debugging
+3. Running final simulation
+
+## 29 April
+1. Change scenario, make it simple
+2. Create plot function using Python
+3. Create shell script as main menu
+
 ## 13 March 2016
 1. Modify scenario, make it specific (Throughput and delay)
 2. Consider static and dynamic mobility
