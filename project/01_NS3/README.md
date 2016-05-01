@@ -4,6 +4,7 @@ This application can be used to simulate WiFi network. The results of simulation
 
 ## How to use
 
+- Edit parameters (path to NS3, source file, etc) in `run.sh` script file
 - Run terminal
 - `cd` to this directory
 - Run `run.sh` by typing `sh run.sh` in the terminal
